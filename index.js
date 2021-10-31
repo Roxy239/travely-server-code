@@ -1,11 +1,14 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-
-// const cors = require('cors');
+const cors = require('cors');
 require('dotenv').config();
-
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
+
+//MIDDLEWARE
+
+app.use(cors());
+app.use(express.json());
 
 
 
@@ -22,20 +25,27 @@ async function run() {
     try {
         await client.connect();
         const database = client.db('tourism');
-        const servicesCollection = database.collection('packages');
+        const servicesCollection = database.collection('services');
+
+        //GET PACKAGES API
+
+        app.get('/services', async (req, res) => {
+            const cursor = servicesCollection.find({});
+            const services = await cursor.toArray();
+            res.send(services);
+        })
+
+
 
         //POST API
 
         app.post('/services', async (req, res) => {
-            const services = {
-                "name": "Taos Mountains 3 Days Tour",
-                "fee": 5000,
-                "description": "If you are interested in climbing to the top, there are various routes that you can choose from and each takes roughly  hiking to get to the top. in New MEXICO. Go ahead and fall in love!",
-                "img": "https://i.ibb.co/3S04JLJ/drif-riadh-Ypku-Rn54y4w-unsplash.jpg"
-            }
+            const service = req.body;
+            console.log('hit the post api', service)
 
-            const result = await servicesCollection.insertOne(services);
+            const result = await servicesCollection.insertOne(service);
             console.log(result);
+            res.send(result);
         })
     }
     finally {
